@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_post/detail_page.dart';
 import 'package:flutter_post/model/news.dart';
 import 'package:flutter_post/services/news_services.dart';
 
@@ -9,10 +10,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Post',
+      title: 'Flutter Feeds',
       debugShowCheckedModeBanner: false,
-      theme: new ThemeData(primaryColor: Color.fromRGBO(58, 66, 86, 1.0)),
-      home: NewsPage(title: 'Flutter Post'),
+      theme: new ThemeData(primaryColor: Colors.white),
+      home: NewsPage(title: 'Flutter Feeds'),
     );
   }
 }
@@ -51,8 +52,9 @@ class _NewsPageState extends State<NewsPage> {
         // the App.build method, and use it to set our appbar title.
         title: Align(alignment: Alignment.center, child: Text(widget.title),),
         elevation: 0.1,
+        backgroundColor: Colors.white,
       ),
-      backgroundColor: Color.fromRGBO(58, 66, 86, 1.0),
+      backgroundColor: Colors.white,
       body: _buildNews(),
     );
   }
@@ -77,12 +79,20 @@ class _NewsPageState extends State<NewsPage> {
   Widget _buildNewsRowList(List<Article> articles) {
     return ListView.builder(itemCount: articles.length,
         itemBuilder: (BuildContext context, int index) {
-          return Card(
+          return InkWell(child: Card(
             elevation: 8.0,
-            margin: new EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
-            child: Container(
-              decoration: BoxDecoration(color: Color.fromRGBO(64, 75, 96, .9)),
-              child: _buildListTile(articles[index]),),);
+            clipBehavior: Clip.antiAlias,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(5.0))),
+            margin: EdgeInsets.only(left: 15.0, right: 15.0, bottom: 15.0),
+            child: _buildCardItem(articles[index]),),
+            onTap: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          DetailPage(article: articles[index],)));
+            },);
         });
   }
 
@@ -91,22 +101,53 @@ class _NewsPageState extends State<NewsPage> {
       child: Text("Error!", style: _textStyle(Colors.white, FontWeight.bold)),);
   }
 
-  Widget _buildListTile(Article article) {
-    return ListTile(
-      contentPadding: EdgeInsets.symmetric(
-          horizontal: 20.0, vertical: 10.0),
-      title: new Text(article.title,
-        style: _textStyle(Colors.white, FontWeight.bold),
+  Widget _buildCardItem(Article article) {
+    return new Container(
+      height: 250.0,
+      child: new Stack(
+        children: <Widget>[
+          _cardBackground(article),
+          _cardContent(article)
+        ],
       ),
-      onTap: pushToDetailPage,);
+    );
+  }
+
+  Widget _cardBackground(Article article) {
+    return new Container(
+      decoration: new BoxDecoration(
+        image: new DecorationImage(
+            colorFilter: new ColorFilter.mode(
+                Colors.black.withOpacity(0.6),
+                BlendMode.luminosity),
+            image: new NetworkImage(
+                article.urlToImage != null ? article.urlToImage : null),
+            fit: BoxFit.cover
+        ),
+      ),
+    );
+  }
+
+  Widget _cardContent(Article article) {
+    return new Align
+      (child: Container(
+      alignment: Alignment.bottomCenter,
+      height: 80.0,
+      padding: EdgeInsets.all(10),
+      child: new Column(mainAxisAlignment: MainAxisAlignment.end,
+        children: <Widget>[
+          new Text(article.title,
+              style: TextStyle(color: Colors.white,
+                  fontSize: 20.0,
+                  fontWeight: FontWeight.bold)),
+        ],
+      ),
+    ), alignment: Alignment.bottomLeft,
+    );
   }
 
   TextStyle _textStyle(Color color, FontWeight weight) {
     return TextStyle(color: color, fontWeight: weight);
-  }
-
-  pushToDetailPage() {
-
   }
 
   Widget _buildLoadingRow() {
