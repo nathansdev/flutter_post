@@ -10,10 +10,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Feeds',
+      title: 'Flutter News',
       debugShowCheckedModeBanner: false,
-      theme: new ThemeData(primaryColor: Colors.white),
-      home: NewsPage(title: 'Flutter Feeds'),
+      theme: new ThemeData(primaryColor: Colors.white, fontFamily: 'Raleway'),
+      home: NewsPage(title: 'Flutter News'),
     );
   }
 }
@@ -55,28 +55,28 @@ class _NewsPageState extends State<NewsPage> {
         backgroundColor: Colors.white,
       ),
       backgroundColor: Colors.white,
-      body: _buildNews(),
+      body: _newsPage(),
     );
   }
 
-  Widget _buildNews() {
+  Widget _newsPage() {
     return FutureBuilder<News>(
         future: loadNews(), builder: (context, snapshot) {
       switch (snapshot.connectionState) {
         case ConnectionState.none:
         case ConnectionState.waiting:
-          return _buildLoadingRow();
+          return _loadingRow();
         case ConnectionState.done:
           if (snapshot.hasError) {
-            return _buildErrorRow();
+            return _errorRow();
           }
-          return _buildNewsRowList(snapshot.data.articles);
+          return _newsList(snapshot.data.articles);
         case ConnectionState.active:
       }
     });
   }
 
-  Widget _buildNewsRowList(List<Article> articles) {
+  Widget _newsList(List<Article> articles) {
     return ListView.builder(itemCount: articles.length,
         itemBuilder: (BuildContext context, int index) {
           return InkWell(child: Card(
@@ -85,7 +85,7 @@ class _NewsPageState extends State<NewsPage> {
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.all(Radius.circular(5.0))),
             margin: EdgeInsets.only(left: 15.0, right: 15.0, bottom: 15.0),
-            child: _buildCardItem(articles[index]),),
+            child: _cardItem(articles[index]),),
             onTap: () {
               Navigator.push(
                   context,
@@ -96,12 +96,13 @@ class _NewsPageState extends State<NewsPage> {
         });
   }
 
-  Widget _buildErrorRow() {
+  Widget _errorRow() {
     return Align(alignment: Alignment.center,
-      child: Text("Error!", style: _textStyle(Colors.white, FontWeight.bold)),);
+      child: Text(
+          "Error!", style: _textStyle(Colors.black38, FontWeight.bold, 20.0)),);
   }
 
-  Widget _buildCardItem(Article article) {
+  Widget _cardItem(Article article) {
     return new Container(
       height: 250.0,
       child: new Stack(
@@ -132,25 +133,30 @@ class _NewsPageState extends State<NewsPage> {
     return new Align
       (child: Container(
       alignment: Alignment.bottomCenter,
-      height: 80.0,
       padding: EdgeInsets.all(10),
       child: new Column(mainAxisAlignment: MainAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          new Text(article.title,
-              style: TextStyle(color: Colors.white,
-                  fontSize: 20.0,
-                  fontWeight: FontWeight.bold)),
+          Flexible(child: new Text(article.title, maxLines: 2,
+              style: _textStyle(Colors.white, FontWeight.bold, 20.0)),),
+          Padding(padding: EdgeInsets.only(top: 5.0),),
+          Flexible(child: new Text(publishedBy(article),
+            style: _textStyle(Colors.white, FontWeight.w400, 12.0),),)
         ],
       ),
     ), alignment: Alignment.bottomLeft,
     );
   }
 
-  TextStyle _textStyle(Color color, FontWeight weight) {
-    return TextStyle(color: color, fontWeight: weight);
+  String publishedBy(Article article) {
+    return "published by " + article.source.name;
   }
 
-  Widget _buildLoadingRow() {
+  TextStyle _textStyle(Color color, FontWeight weight, double size) {
+    return TextStyle(color: color, fontWeight: weight, fontSize: size);
+  }
+
+  Widget _loadingRow() {
     return Align(
       alignment: Alignment.center, child: CircularProgressIndicator(),);
   }
