@@ -37,6 +37,44 @@ class NewsPage extends StatefulWidget {
 }
 
 class _NewsPageState extends State<NewsPage> {
+  List<Article> list = List();
+
+  Widget _newsPage() {
+    return list.isEmpty ? FutureBuilder<News>(
+        future: loadNews(), builder: (context, snapshot) {
+      switch (snapshot.connectionState) {
+        case ConnectionState.none:
+        case ConnectionState.waiting:
+          return _loadingRow();
+        case ConnectionState.done:
+          if (snapshot.hasError) {
+            return _errorRow();
+          }
+          list = snapshot.data.articles;
+          return _newsList(list);
+        case ConnectionState.active:
+      }
+    }) : _newsList(list);
+  }
+
+  Widget _newsList(List<Article> articles) {
+    return ListView.builder(itemCount: articles.length,
+        itemBuilder: (BuildContext context, int index) {
+          return InkWell(child: Card(
+            elevation: 8.0,
+            clipBehavior: Clip.antiAlias,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(5.0))),
+            margin: EdgeInsets.only(left: 15.0, right: 15.0, bottom: 15.0),
+            child: _cardItem(articles[index]),),
+            onTap: () {
+              Navigator.of(context).push(
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          DetailPage(article: articles[index],)));
+            },);
+        });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,43 +95,6 @@ class _NewsPageState extends State<NewsPage> {
       backgroundColor: Colors.white,
       body: _newsPage(),
     );
-  }
-
-  Widget _newsPage() {
-    return FutureBuilder<News>(
-        future: loadNews(), builder: (context, snapshot) {
-      switch (snapshot.connectionState) {
-        case ConnectionState.none:
-        case ConnectionState.waiting:
-          return _loadingRow();
-        case ConnectionState.done:
-          if (snapshot.hasError) {
-            return _errorRow();
-          }
-          return _newsList(snapshot.data.articles);
-        case ConnectionState.active:
-      }
-    });
-  }
-
-  Widget _newsList(List<Article> articles) {
-    return ListView.builder(itemCount: articles.length,
-        itemBuilder: (BuildContext context, int index) {
-          return InkWell(child: Card(
-            elevation: 8.0,
-            clipBehavior: Clip.antiAlias,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.all(Radius.circular(5.0))),
-            margin: EdgeInsets.only(left: 15.0, right: 15.0, bottom: 15.0),
-            child: _cardItem(articles[index]),),
-            onTap: () {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) =>
-                          DetailPage(article: articles[index],)));
-            },);
-        });
   }
 
   Widget _errorRow() {
